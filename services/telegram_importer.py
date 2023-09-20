@@ -94,7 +94,7 @@ class Telegram_Service:
         """
         self.response(message, chat_id)
 
-        logging.info(f"Finalizado processamento solicitado pelo usuário: {username} via Telegram. Foram adicionadas {sync_netw['changes']} Novas redes")
+        logging.info(f"Finalizado processamento solicitado pelo usuário: {username} via Telegram: {message}")
         
         if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
             logging.info(f"Reprocessando redes pendentes no banco de dados...")
