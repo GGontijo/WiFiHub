@@ -38,7 +38,7 @@ class Telegram_Service:
                     if "/start" in message:
                         message = f'''
                         /start - Para exibir esta mensagem{os.linesep}
-                        /compilar NOME_DA_REDE|MAC_DA_REDE - Para compilar a senha da rede{os.linesep}
+                        /compilar NOME_DA_REDE|MAC_DA_REDE{os.linesep}
                         '''
                         self.response(message,chat_id)
                         continue
