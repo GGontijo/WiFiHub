@@ -99,6 +99,7 @@ class Telegram_Service:
         if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
             logging.info(f"Reprocessando redes pendentes no banco de dados...")
             self.vuln.check_vuln_pending_db()
+            return None
 
         logging.info(f"Nenhuma rede nova..")
         

@@ -65,8 +65,7 @@ class Vuln:
         for v in self.vulnerabilities:
             v: VulnInterface
             if v.check_vuln(ap.ssid):
-                ap.password = v.compile_passw(ap.ssid,ap.mac)
+                ap.password = v.compile_passw(ap.ssid,ap.mac)["password"]
                 self.db.update_ap_passwd(ap)
-                self.map = map_helper(self.db)
                 return True
         return False

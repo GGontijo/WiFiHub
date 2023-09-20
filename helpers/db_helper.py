@@ -33,8 +33,8 @@ class DbHelper:
     def update_ap_passwd(self, ap: NewAccessPoint) -> None:
         '''Atualiza a senha de um determinado access point já existente na tabela'''
         if isinstance(ap, List):
-            for ap in ap:
-                q = f"UPDATE network SET password = '{ap.password}' WHERE bssid = '{ap.mac}';"
+            for ap_i in ap:
+                q = f"UPDATE network SET password = '{ap_i.password}' WHERE bssid = '{ap_i.mac}';"
                 response = self.dbconn.update(q)
         else:
             q = f"UPDATE network SET password = '{ap.password}' WHERE bssid = '{ap.mac}';"
