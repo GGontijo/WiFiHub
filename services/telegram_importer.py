@@ -28,17 +28,20 @@ class Telegram_Service:
                 for dado in dados:
                     update_id = dado["update_id"]
                     username = str(dado["message"]["from"]["first_name"])
+                    message = dado["message"]["text"]
                     chat_id = dado["message"]["from"]["id"]
-                    if "document" not in dado["message"] or '.sqlite' not in dado["message"]["document"]["file_name"]:
-                        message = f"Por favor {username}, me envie somente arquivos SQLite para sincronização do banco :D"
-                        self.response(message, chat_id)
-                        continue
-                    file = dado["message"]["document"]
+                    if "document" in dado["message"] and '.sqlite' in dado["message"]["document"]["file_name"]:
+                        file = dado["message"]["document"]
+                        self.process_file(file, chat_id, username)
+                    if "/compile" in message:
+                        # TO-DO
+                        # Valida formato da mensagem
+                        # Retorna senha compilada
+                        self.compile_password()
 
-                    
-                    self.process_file(file, chat_id, username)
 
-
+    def compile_password(self, ssid: str, mac: str):
+        pass
     def get_new_messages(self, update_id):
         link_req = f'{self.url_base}getUpdates?timeout=100'
         if update_id:
@@ -63,7 +66,7 @@ class Telegram_Service:
         return file_dir
 
     def process_file(self, file, chat_id, username):
-        '''Esse método irá orquestrar a sincronização e dar retornos ao usuário referente a cada etapa, não gerando os logs'''
+        '''Esse método irá orquestrar a sincronização e dar retornos ao usuário referente a cada etapa'''
         file_dir = self.download_file(file)
 
         logging.info(f"Iniciando importação solicitado pelo usuário: {username} via Telegram")
