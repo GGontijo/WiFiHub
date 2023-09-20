@@ -1,5 +1,5 @@
 import logging
-from database.sqlite import SQLite
+from models.base_models import NewAccessPoint
 from helpers.db_helper import DbHelper
 from helpers.config_helper import Config
 from vulns.vuln import Vuln
@@ -33,15 +33,29 @@ class Telegram_Service:
                     if "document" in dado["message"] and '.sqlite' in dado["message"]["document"]["file_name"]:
                         file = dado["message"]["document"]
                         self.process_file(file, chat_id, username)
-                    if "/compile" in message:
-                        # TO-DO
-                        # Valida formato da mensagem
-                        # Retorna senha compilada
-                        self.compile_password()
+                    if "/start" in message:
+                        message = f"""
+                        /start - Para exibir esta mensagem
+                        /compilar NOME_DA_REDE|MAC_DA_REDE - Para compilar a senha da rede
+                        """
+                        self.response(message,chat_id)
+                    if "/compilar" in message:
+                        try:
+                            input = message.split("/compilar")[1].strip()
+                            ap = NewAccessPoint(ssid=input.split("|")[0].strip(), 
+                                                mac=input.split("|")[1].strip())
+                            compiled_ap = self.vuln.compile(ap)
+                            if compiled_ap:
+                                message = f'Senha gerada com sucesso para a rede {compiled_ap.ssid}: {compiled_ap.password}'
+                                self.response(message,chat_id)
+                            else:
+                                message = f'Não foi possível gerar a senha para a rede {compiled_ap.ssid}.'
+                                self.response(message,chat_id)
+                        except:
+                            message = f'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE'
+                            self.response(message,chat_id)
 
 
-    def compile_password(self, ssid: str, mac: str):
-        pass
     def get_new_messages(self, update_id):
         link_req = f'{self.url_base}getUpdates?timeout=100'
         if update_id:
