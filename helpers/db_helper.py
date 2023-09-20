@@ -36,8 +36,10 @@ class DbHelper:
             for ap in ap:
                 q = f"UPDATE network SET password = '{ap.password}' WHERE bssid = '{ap.mac}';"
                 response = self.dbconn.update(q)
-        
-        return response.connection.total_changes
+        else:
+            q = f"UPDATE network SET password = '{ap.password}' WHERE bssid = '{ap.mac}';"
+            response = self.dbconn.update(q)
+            return response.connection.total_changes
 
     def sync_network(self, db_e) -> dict:
         '''Método que sincroniza a tabela network a partir de um banco recebido (db_e) ao

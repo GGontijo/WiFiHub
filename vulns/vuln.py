@@ -68,6 +68,5 @@ class Vuln:
                 ap.password = v.compile_passw(ap.ssid,ap.mac)
                 self.db.update_ap_passwd(ap)
                 self.map = map_helper(self.db)
-                logging.info('Mapa atualizado!')
                 return True
         return False
