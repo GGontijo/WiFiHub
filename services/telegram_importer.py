@@ -27,7 +27,7 @@ class Telegram_Service:
             if dados:
                 for dado in dados:
                     update_id = dado["update_id"]
-                    username = str(dado["message"]["from"]["username"])
+                    username = str(dado["message"]["from"]["first_name"])
                     chat_id = dado["message"]["from"]["id"]
                     if "document" not in dado["message"] or '.sqlite' not in dado["message"]["document"]["file_name"]:
                         message = f"Por favor {username}, me envie somente arquivos SQLite para sincronização do banco :D"
@@ -66,7 +66,7 @@ class Telegram_Service:
         '''Esse método irá orquestrar a sincronização e dar retornos ao usuário referente a cada etapa, não gerando os logs'''
         file_dir = self.download_file(file)
 
-        logging.info(f"Iniciando processamento solicitado pelo usuário: {username} via Telegram")
+        logging.info(f"Iniciando importação solicitado pelo usuário: {username} via Telegram")
 
         self.response(f'Arquivo recebido com sucesso!', chat_id)
         self.response(f'Iniciando sincronização...', chat_id)
@@ -94,11 +94,11 @@ class Telegram_Service:
         """
         self.response(message, chat_id)
 
-        logging.info(f"Finalizado processamento solicitado pelo usuário: {username} via Telegram: {message}")
+        logging.info(f"Finalizado importação solicitado pelo usuário: {username} via Telegram: {message}")
         
         if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
-            logging.info(f"Reprocessando redes pendentes no banco de dados...")
-            self.vuln.check_vuln_pending_db()
+            logging.info(f"Processando as redes novas...")
+            self.vuln.check_vuln_pending_db(sync_netw["data"])
             return None
 
         logging.info(f"Nenhuma rede nova..")

@@ -1,4 +1,3 @@
-from ast import List
 from typing import List
 from database.sqlite import SQLite
 from models.base_models import AccessPoint, NewAccessPoint
@@ -58,28 +57,32 @@ class DbHelper:
         rows = db_e.select(query_netw_b)
         db_e.close()
         if not rows:
-            return {"status": "PASS", "changes": 0}
+            return {"status": "PASS", "changes": 0, "data": None}
 
-        ap_list = []
+        ap_list_raw = [] # Lista com os values em strings
+        ap_obj_list = [] # Lista com os objetos
         for item in rows:
-            ap_sub_list = []
-            ap_sub_list.append(item[0])
-            ap_sub_list.append(item[1])
-            ap_sub_list.append(item[2])
-            ap_sub_list.append(item[3])
-            ap_sub_list.append(item[4])
-            ap_sub_list.append(item[5])
-            ap_sub_list.append(item[6])
-            ap_sub_list.append(item[7])
-            ap_sub_list.append(item[8])
-            ap_sub_list.append(item[9])
-            ap_sub_list.append(item[10])
-            ap_list.append(ap_sub_list)
+            ap_list_raw.append(item)
+            ap_obj = AccessPoint(
+                bssid=item[0],
+                ssid=item[1],
+                frequency=item[2],
+                capabilities=item[3],
+                lasttime=item[4],
+                lastlat=item[5],
+                lastlon=item[6],
+                type=item[7],
+                bestlevel=item[8],
+                bestlat=item[9],
+                bestlon=item[10],
+                password=item[11] if len(item) == 12 else None,
+                )
+            ap_obj_list.append(ap_obj)
 
-        for ap in ap_list:
+        for ap in ap_list_raw:
             response = db_i.insert(f'insert into network values({str(ap)[1:-1]}, ?)', (None, ))
 
-        return {"status": "OK", "changes": response.connection.total_changes}
+        return {"status": "OK", "changes": response.connection.total_changes, "data": [NewAccessPoint(ssid=new_ap.ssid, mac=new_ap.bssid) for new_ap in ap_obj_list]}
 
     def sync_location(self, db_e) -> bool:
         '''Método que sincroniza a tabela location a partir de um banco recebido (db_e) ao
@@ -99,20 +102,11 @@ class DbHelper:
         if not rows:
             return {"status": "PASS", "changes": 0}
 
-        ap_list = []
+        ap_list_raw = []
         for item in rows:
-            ap_sub_list = []
-            ap_sub_list.append(item[0])
-            ap_sub_list.append(item[1])
-            ap_sub_list.append(item[2])
-            ap_sub_list.append(item[3])
-            ap_sub_list.append(item[4])
-            ap_sub_list.append(item[5])
-            ap_sub_list.append(item[6])
-            ap_sub_list.append(item[7])
-            ap_list.append(ap_sub_list)
+            ap_list_raw = item[:11]
         
-        for ap in ap_list:
+        for ap in ap_list_raw:
             response = db_i.insert(f'insert into location values(?,{str(ap)[1:-1]})', (None,))
 
         return {"status": "OK", "changes": response.connection.total_changes}
@@ -135,21 +129,11 @@ class DbHelper:
         if not rows:
             return {"status": "PASS", "changes": 0}
 
-        ap_list = []
+        ap_list_raw = []
         for item in rows:
-            ap_sub_list = []
-            ap_sub_list.append(item[0])
-            ap_sub_list.append(item[1])
-            ap_sub_list.append(item[2])
-            ap_sub_list.append(item[3])
-            ap_sub_list.append(item[4])
-            ap_sub_list.append(item[5])
-            ap_sub_list.append(item[6])
-            ap_sub_list.append(item[7])
-            ap_sub_list.append(item[8])
-            ap_list.append(ap_sub_list)
+            ap_list_raw = item[:11]
         
-        for ap in ap_list:
+        for ap in ap_list_raw:
             response = db_i.insert(f'insert into route values(?,{str(ap)[1:-1]})', (None,))
 
         return {"status": "OK", "changes": response.connection.total_changes}
@@ -171,7 +155,7 @@ class DbHelper:
             bestlevel=item[8],
             bestlat=item[9],
             bestlon=item[10],
-            password=item[11],
+            password=item[11] if len(item) == 12 else None,
             )
             ap_list.append(ap)
         return ap_list
