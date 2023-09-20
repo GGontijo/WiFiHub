@@ -64,11 +64,11 @@ class Vuln:
                 return isvuln
         return False
     
-    def compile(self, ap: NewAccessPoint) -> bool:
+    def compile(self, ap: NewAccessPoint):
         for v in self.vulnerabilities:
             v: VulnInterface
             if v.check_vuln(ap.ssid):
                 ap.password = v.compile_passw(ap.ssid,ap.mac)["password"]
                 self.db.update_ap_passwd(ap)
-                return True
-        return False
+                return ap
+        return None
