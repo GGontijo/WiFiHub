@@ -9,6 +9,17 @@ class DbHelper:
         self.db_file = 'database/unified_ap.sqlite'
         self.dbconn = SQLite(self.db_file)
 
+    def get_pending_ap_mac(self) -> list:
+        '''Busca somente redes pendentes de processamento ou não vulneráveis'''       
+        list = []
+        query = "SELECT ssid, bssid FROM network where password is null;"
+        rows = self.dbconn.select(query)
+        for item in rows:
+            ap = NewAccessPoint(ssid=item[0],
+                             mac=item[1])
+            list.append(ap)
+        return list
+
     def get_ap_mac(self) -> list:       
         list = []
         query = "SELECT ssid, bssid FROM network;"
