@@ -29,7 +29,7 @@ class Telegram_Service:
                     update_id = dado["update_id"]
                     username = str(dado["message"]["from"]["username"])
                     chat_id = dado["message"]["from"]["id"]
-                    if "document" not in dado["message"]:
+                    if "document" not in dado["message"] or '.sqlite' not in dado["message"]:
                         message = f"Por favor {username}, me envie somente arquivos SQLite para sincronização do banco :D"
                         self.response(message, chat_id)
                         continue
