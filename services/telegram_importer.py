@@ -1,4 +1,5 @@
 import logging
+import os
 from models.base_models import NewAccessPoint
 from helpers.db_helper import DbHelper
 from helpers.config_helper import Config
@@ -33,12 +34,14 @@ class Telegram_Service:
                     if "document" in dado["message"] and '.sqlite' in dado["message"]["document"]["file_name"]:
                         file = dado["message"]["document"]
                         self.process_file(file, chat_id, username)
+                        continue
                     if "/start" in message:
-                        message = f"""
-                        /start - Para exibir esta mensagem
-                        /compilar NOME_DA_REDE|MAC_DA_REDE - Para compilar a senha da rede
-                        """
+                        message = f'''
+                        /start - Para exibir esta mensagem{os.linesep}
+                        /compilar NOME_DA_REDE|MAC_DA_REDE - Para compilar a senha da rede{os.linesep}
+                        '''
                         self.response(message,chat_id)
+                        continue
                     if "/compilar" in message:
                         try:
                             input = message.split("/compilar")[1].strip()
@@ -54,6 +57,7 @@ class Telegram_Service:
                         except:
                             message = f'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE'
                             self.response(message,chat_id)
+                        continue
 
 
     def get_new_messages(self, update_id):
