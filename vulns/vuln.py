@@ -46,7 +46,7 @@ class Vuln:
         for ap in ap_info_list:
             if self.compile(ap):
                 new_vulns += 1
-            logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}')
+            #logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
         logging.info(f'Foram processados {len(ap_info_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
         if new_vulns > 0:
             self.map = map_helper(self.db)
