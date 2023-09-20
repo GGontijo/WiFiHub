@@ -20,7 +20,7 @@ class Server:
         self.map = map_helper(db)
 
     def start_api(self):
-        app.run(host="*")
+        app.run(host="0.0.0.0")
 
     def start(self):
         api_thread = Thread(target=self.start_api)
