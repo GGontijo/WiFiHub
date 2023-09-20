@@ -1,6 +1,8 @@
+import logging
 from database.sqlite import SQLite
 from helpers.db_helper import DbHelper
 from helpers.config_helper import Config
+from vulns.vuln import Vuln
 import requests
 import json
 
@@ -8,13 +10,14 @@ class Telegram_Service:
 
     def __init__(self, db: DbHelper):
         self.db = db
+        self.vuln = Vuln(db)
         _config = Config()
         _config_data = _config.get_config("TELEGRAM_IMPORTER")
         _token = _config_data["TOKEN"]
         _url = _config_data["URL"]
         _download_url = _config_data["DOWNLOAD_URL"]
-        self.url_base_download = f'{_download_url}{_token}'
-        self.url_base = f'{_url}{_token}/'
+        self.url_base_download = f'{_download_url}bot{_token}'
+        self.url_base = f'{_url}bot{_token}/'
 
     def process_messages(self):
         update_id = None
@@ -24,14 +27,16 @@ class Telegram_Service:
             if dados:
                 for dado in dados:
                     update_id = dado["update_id"]
-                    usuario = str(dado["message"]["from"]["username"])
+                    username = str(dado["message"]["from"]["username"])
                     chat_id = dado["message"]["from"]["id"]
                     if "document" not in dado["message"]:
-                        message = f"Por favor {usuario}, me envie somente arquivos SQLite para sincronização do banco :D"
+                        message = f"Por favor {username}, me envie somente arquivos SQLite para sincronização do banco :D"
                         self.response(message, chat_id)
                         continue
                     file = dado["message"]["document"]
-                    self.process_file(file, chat_id)
+
+                    
+                    self.process_file(file, chat_id, username)
 
 
     def get_new_messages(self, update_id):
@@ -57,36 +62,26 @@ class Telegram_Service:
 
         return file_dir
 
-    def process_file(self, file, chat_id):
+    def process_file(self, file, chat_id, username):
         '''Esse método irá orquestrar a sincronização e dar retornos ao usuário referente a cada etapa, não gerando os logs'''
         file_dir = self.download_file(file)
 
-        message = f'Arquivo recebido com sucesso!'
-        self.response(message, chat_id)
+        logging.info(f"Iniciando processamento solicitado pelo usuário: {username} via Telegram")
 
-        message = f'Iniciando sincronização...'
-        self.response(message, chat_id)
+        self.response(f'Arquivo recebido com sucesso!', chat_id)
+        self.response(f'Iniciando sincronização...', chat_id)
 
-        message = f'Sincronizando redes [...]'
-        self.response(message, chat_id)
-
+        self.response(f'Sincronizando redes [...]', chat_id)
         sync_netw = self.db.sync_network(file_dir)      
-        message = f'Sincronizando redes [{sync_netw["status"]}]'
-        self.response(message, chat_id)
+        self.response(f'Sincronizando redes [{sync_netw["status"]}]', chat_id)
 
-        message = f'Sincronizando coordenadas [...]'
-        self.response(message, chat_id)
-
+        self.response(f'Sincronizando coordenadas [...]', chat_id)
         sync_coords = self.db.sync_location(file_dir)
-        message = f'Sincronizando coordenadas [{sync_coords["status"]}]'
-        self.response(message, chat_id)
+        self.response(f'Sincronizando coordenadas [{sync_coords["status"]}]', chat_id)
 
-        message = f'Sincronizando rotas [...]'
-        self.response(message, chat_id)
-
+        self.response(f'Sincronizando rotas [...]', chat_id)
         sync_routes = self.db.sync_route(file_dir)
-        message = f'Sincronizando rotas [{sync_routes["status"]}]'
-        self.response(message, chat_id)
+        self.response(f'Sincronizando rotas [{sync_routes["status"]}]', chat_id)
 
         message = f'Sincronização finalizada com sucesso!'
         self.response(message, chat_id)
@@ -97,11 +92,17 @@ class Telegram_Service:
         {sync_coords["changes"]} Novas coordenadas
         {sync_routes["changes"]} Novas rotas    
         """
-
         self.response(message, chat_id)
-        return 
 
-    # Send response
+        logging.info(f"Finalizado processamento solicitado pelo usuário: {username} via Telegram. Foram adicionadas {sync_netw['changes']} Novas redes")
+        
+        if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
+            logging.info(f"Reprocessando redes pendentes no banco de dados...")
+            self.vuln.check_vuln_db()
+
+        logging.info(f"Nenhuma rede nova..")
+        
+
     def response(self, message, chat_id):
         link_requisicao = f'{self.url_base}sendMessage?chat_id={chat_id}&text={message}'
         requests.get(link_requisicao)

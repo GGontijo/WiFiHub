@@ -1,7 +1,7 @@
 import json
 
 class Config:
-    '''Singleton approach'''
+    '''Singleton'''
 
     _instance = None
 

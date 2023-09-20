@@ -1,36 +1,34 @@
+from ast import List
+from typing import List
 from database.sqlite import SQLite
+from models.base_models import AccessPoint, NewAccessPoint
 
 class DbHelper:
 
     def __init__(self) -> None:
-        ##os.path IS FILE
         self.db_file = 'database/unified_ap.sqlite'
         self.dbconn = SQLite(self.db_file)
 
-    def get_ap_mac(self) -> list:
-        #MEMO_query = "SELECT ssid, bssid FROM network"        
-        dict_list = []
+    def get_ap_mac(self) -> list:       
+        list = []
         query = "SELECT ssid, bssid FROM network;"
         rows = self.dbconn.select(query)
         for item in rows:
-            ap_mac_dict = {}
-            ap_mac_dict['ssid'] = item[0]
-            ap_mac_dict['mac'] = item[1]
-            ap_mac_dict['password'] = None
-            ap_mac_dict['vuln'] = None
-            dict_list.append(ap_mac_dict)
-        return dict_list
+            ap = NewAccessPoint(ssid=item[0],
+                             mac=item[1])
+            list.append(ap)
+        return list
 
-    def update_ap_passwd(self, ap_list: list) -> str:
-        '''Método principal que dependia da classo de baixo nível'''
-        print(ap_list)
-        for ap in ap_list:
-            query = f"UPDATE network SET password = '{ap['password']}' WHERE bssid = '{ap['mac']}';"
-            response = self.dbconn.update(query)
+    def update_ap_passwd(self, ap: NewAccessPoint) -> None:
+        '''Atualiza a senha de um determinado access point já existente na tabela'''
+        if isinstance(ap, List):
+            for ap in ap:
+                q = f"UPDATE network SET password = '{ap.password}' WHERE bssid = '{ap.mac}';"
+                response = self.dbconn.update(q)
         
         return response.connection.total_changes
 
-    def sync_network(self, db_e) -> bool:
+    def sync_network(self, db_e) -> dict:
         '''Método que sincroniza a tabela network a partir de um banco recebido (db_e) ao
         banco interno (db_i)'''
         db_i = self.dbconn
@@ -143,23 +141,24 @@ class DbHelper:
 
         return {"status": "OK", "changes": response.connection.total_changes}
 
-    def check_integrity(self):
-        pass
-
-    def get_ap_all(self) -> list:
-        #query = "SELECT ssid, bssid, frequency, capabilities, type, bestlat, bestlon, password FROM network where password is not NULL"
-        query = "SELECT ssid, bssid, frequency, capabilities, type, bestlat, bestlon, password FROM network;"
+    def get_ap_all(self) -> List[AccessPoint]:
+        query = "SELECT * FROM network;"
         ap_list = []
         rows = self.dbconn.select(query)
         for item in rows:
-            ap_dict = {}
-            ap_dict['ssid'] = item[0]
-            ap_dict['mac'] = item[1]
-            ap_dict['frequency'] = item[2]
-            ap_dict['capabilities'] = item[3]
-            ap_dict['type'] = item[4]
-            ap_dict['bestlat'] = item[5]
-            ap_dict['bestlon'] = item[6]
-            ap_dict['password'] = item[7]
-            ap_list.append(ap_dict)
+            ap = AccessPoint(
+            bssid=item[0],
+            ssid=item[1],
+            frequency=item[2],
+            capabilities=item[3],
+            lasttime=item[4],
+            lastlat=item[5],
+            lastlon=item[6],
+            type=item[7],
+            bestlevel=item[8],
+            bestlat=item[9],
+            bestlon=item[10],
+            password=item[11],
+            )
+            ap_list.append(ap)
         return ap_list

@@ -1,3 +1,4 @@
+import os
 import folium
 from folium.plugins import MarkerCluster
 from helpers.db_helper import DbHelper
@@ -9,7 +10,7 @@ class map_helper:
     def __init__(self, db: DbHelper) -> None:
         _start_coord = [-15.595485,-56.092638]
         self._map = folium.Map(location=_start_coord, zoom_start=14)
-        self.file = 'index.html' ##add to conf file
+        self.file = os.path.join('web', 'index.html')
         self.db = db
         self.ap_geodata = self.db.get_ap_all()
         #self.generate_heavy_pwned()
@@ -18,18 +19,18 @@ class map_helper:
     def generate_heavy_all(self):
         coordinates = []
         for ap in self.ap_geodata:
-            subcoordinates = [ap['bestlat'], ap['bestlon']]
+            subcoordinates = [ap.bestlat, ap.bestlon]
             coordinates.append(subcoordinates)
         self._map.add_child(MarkerCluster(coordinates))
         return self.render()
 
     def generate_heavy_pwned(self):
         for ap in self.ap_geodata:
-            if ap['password'] != None:
-                subcoordinates = [ap['bestlat'], ap['bestlon']]
-                popup_info = {"SSID": ap['ssid'], 
-                            "MAC": ap['mac'], 
-                            "Password": ap['password']}
+            if ap.password != None:
+                subcoordinates = [ap.bestlat, ap.bestlon]
+                popup_info = {"SSID": ap.ssid, 
+                            "MAC": ap.bssid, 
+                            "Password": ap.password}
                 folium.Marker(location=[subcoordinates[0], subcoordinates[1]], popup=popup_info).add_to(self._map)
         return self.render()
 
@@ -37,11 +38,11 @@ class map_helper:
         unpwned_coordinates = []
         pwned_coordinates = []
         for ap in self.ap_geodata:
-            if ap['password'] == None:
-                subcoordinates = [ap['bestlat'], ap['bestlon']]
+            if ap.password == None:
+                subcoordinates = [ap.bestlat, ap.bestlon]
                 unpwned_coordinates.append(subcoordinates)
             else:
-                subcoordinates= [ap['bestlat'], ap['bestlon']]
+                subcoordinates= [ap.bestlat, ap.bestlon]
                 pwned_coordinates.append(subcoordinates)
         unpwned_layer = folium.FeatureGroup(name='unpwned')
         pwned_layer = folium.FeatureGroup(name='pwned')
@@ -61,10 +62,10 @@ class map_helper:
         pwned_coordinates = []
         for ap in self.ap_geodata:
             if ap['password'] == None:
-                subcoordinates = [ap['bestlat'], ap['bestlon']]
+                subcoordinates = [ap.bestlat, ap.bestlon]
                 unpwned_coordinates.append(subcoordinates)
             else:
-                subcoordinates= [ap['bestlat'], ap['bestlon']]
+                subcoordinates= [ap.bestlat, ap.bestlon]
                 pwned_coordinates.append(subcoordinates)
         unpwned_layer = folium.FeatureGroup(name='unpwned')
         pwned_layer = folium.FeatureGroup(name='pwned')

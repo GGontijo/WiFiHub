@@ -5,3 +5,4 @@ __pycache__/
 *.sqlite-journal
 *.json
 config.json
+*.html

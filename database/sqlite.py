@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import sqlite3
 
 class SQLite(DatabaseInterface):
-    '''Classe de baixo nível'''
 
     def __init__(self, db_file):
         try:
@@ -66,6 +65,3 @@ class SQLite(DatabaseInterface):
                 response = cursor.execute(query)
                 self.sqliteConnection.commit()
                 return response
-
-#test = SQLite('unified_ap.sqlite')
-#print(test.select('SELECT ssid, bssid FROM network_unified'))
