@@ -25,12 +25,25 @@ class Vuln:
             class_aux = inspect.getmembers(specmodule, inspect.isclass)[0]
             self.vulnerabilities.append(class_aux[1]())
 
-    def check_vuln_db(self) -> None: # Processa redes pendentes
-        ap_info: List[NewAccessPoint]
-        ap_info = self.db.get_ap_mac()
-        for ap in ap_info:
-            self.compile(ap)
+    def check_vuln_all_db(self) -> None: # Processa redes pendentes
+        vulns: int = 0
+        ap_info_list: List[NewAccessPoint]
+        ap_info_list = self.db.get_ap_mac()
+        for ap in ap_info_list:
+            if self.compile(ap):
+                vulns += 1
             logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}')
+        logging.info(f'Total de {ap_info_list} processados. Total de {vulns} vulneráveis.')
+
+    def check_vuln_pending_db(self) -> None: # Processa redes pendentes
+        new_vulns: int = 0
+        ap_info_list: List[NewAccessPoint]
+        ap_info_list = self.db.get_pending_ap_mac()
+        for ap in ap_info_list:
+            if self.compile(ap):
+                new_vulns += 1
+            logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}')
+        logging.info(f'Foram processados {ap_info_list} redes. Total de {new_vulns} novas redes vulneráveis.')
     
     def check(self, ssid: str) -> bool:
         '''Valida se o AP é vulneravél á um dos scripts conhecidos'''
