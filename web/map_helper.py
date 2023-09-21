@@ -90,4 +90,5 @@ class map_helper:
         return self.render()
 
     def render(self):
-        return self._map.save(self.file)
+        self._map.save(self.file)
+        logging.info('Mapa atualizado!')
