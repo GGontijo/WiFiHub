@@ -76,7 +76,7 @@ class map_helper:
 
     def generate_opt_pwned(self):
         pwned_layer = folium.FeatureGroup(name='pwned')
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 20}).add_to(pwned_layer)
+        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 50}).add_to(pwned_layer)
         for ap in self.ap_geodata:
             if ap.password is not None:
                 coord = [ap.bestlat, ap.bestlon]
