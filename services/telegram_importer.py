@@ -8,6 +8,7 @@ import requests
 import json
 
 class Telegram_Service:
+    # TODO: Implementar bliblioteca pronta do telegram e uso do MarkdownV2
 
     def __init__(self, db: DbHelper):
         self.db = db
@@ -36,29 +37,35 @@ class Telegram_Service:
                         self.process_file(file, chat_id, username)
                         continue
                     if "/start" in message:
-                        message = f'''
-                        /start - Para exibir esta mensagem{os.linesep}
-                        /compilar NOME_DA_REDE|MAC_DA_REDE{os.linesep}
-                        '''
+                        message = f"""
+                        /start - Para exibir esta mensagem
+                        /wifi NOME_DA_REDE|MAC_DA_REDE
+                        """
                         self.response(message,chat_id)
                         continue
                     if "/compilar" in message:
                         try:
-                            input = message.split("/compilar")[1].strip()
-                            ap = NewAccessPoint(ssid=input.split("|")[0].strip(), 
-                                                mac=input.split("|")[1].strip())
-                            compiled_ap = self.vuln.compile(ap)
-                            if compiled_ap:
-                                message = f'Senha gerada com sucesso para a rede {compiled_ap.ssid}: {compiled_ap.password}'
-                                self.response(message,chat_id)
+                            input_data = message.split("/compilar")[1].strip()
+                            data_parts = input_data.split("|")
+                            if len(data_parts) == 2:
+                                ssid, mac = data_parts[0].strip(), data_parts[1].strip()
+                                ap = NewAccessPoint(ssid=ssid, mac=mac)
+                                compiled_ap = self.vuln.compile(ap)
+                                if compiled_ap:
+                                    message = f'Senha gerada com sucesso para a rede {compiled_ap.ssid}!'
+                                    self.response(message, chat_id, md=True)
+                                    self.response(compiled_ap.password, chat_id, md=True)
+                                else:
+                                    message = f'Não foi possível gerar a senha para a rede {ssid}.'
+                                    self.response(message, chat_id)
                             else:
-                                message = f'Não foi possível gerar a senha para a rede {compiled_ap.ssid}.'
-                                self.response(message,chat_id)
-                        except:
-                            message = f'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE'
-                            self.response(message,chat_id)
+                                message = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
+                                self.response(message, chat_id)
+                        except IndexError:
+                            message = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
+                            self.response(message, chat_id)
                         continue
-
+                    
 
     def get_new_messages(self, update_id):
         link_req = f'{self.url_base}getUpdates?timeout=100'
@@ -125,6 +132,8 @@ class Telegram_Service:
         logging.info(f"Nenhuma rede nova..")
         
 
-    def response(self, message, chat_id):
+    def response(self, message: str, chat_id: str, md: bool = False):
         link_requisicao = f'{self.url_base}sendMessage?chat_id={chat_id}&text={message}'
+        if md:
+            link_requisicao = f'{self.url_base}sendMessage?chat_id={chat_id}&text={message}&parse_mode=MarkdownV2'
         requests.get(link_requisicao)
