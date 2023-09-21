@@ -38,9 +38,9 @@ class Telegram_Service:
                         self.process_file(file, chat_id, username)
                         continue
                     if "/start" in message:
-                        response = f"""
+                        response = f"""                   
                         /start - Para exibir esta mensagem
-                        /wifi NOME_DA_REDE|MAC_DA_REDE
+                        /wifi NOME_DA_REDE|MAC_DA_REDE      
                         """
                         self.response(response,chat_id)
                         continue
