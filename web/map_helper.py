@@ -12,7 +12,7 @@ class map_helper:
     https://nbviewer.org/urls/hugedot.pl/projekt_studia/projekt/wizualizacja/mapa.ipynb'''
     def __init__(self, db: DbHelper) -> None:
         _start_coord = [-15.595485,-56.092638]
-        self._map = folium.Map(location=_start_coord, zoom_start=14)
+        self._map = folium.Map(location=_start_coord, zoom_start=25)
         self.file = os.path.join('web', 'index.html')
         self.db = db
         self.ap_geodata = self.db.get_ap_all()
@@ -76,7 +76,7 @@ class map_helper:
 
     def generate_opt_pwned(self):
         pwned_layer = folium.FeatureGroup(name='pwned')
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 25, 'spiderfyOnMaxZoom': False}).add_to(pwned_layer)
+        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 25}).add_to(pwned_layer)
         for ap in self.ap_geodata:
             if ap.password is not None:
                 coord = [ap.bestlat, ap.bestlon]
@@ -84,7 +84,7 @@ class map_helper:
                 _icon = CustomIcon(
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
-                folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
+            folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
         self._map.add_child(pwned_layer)
         self._map.add_child(folium.LayerControl())
         return self.render()
