@@ -30,18 +30,19 @@ class Telegram_Service:
                 for dado in dados:
                     update_id = dado["update_id"]
                     username = str(dado["message"]["from"]["first_name"])
-                    message = dado["message"]["text"]
+                    message = dado["message"]["text"] if "text" in dado["message"] else dado["message"]["document"]["file_name"]
+                    logging.info(f"[Recebido via Telegram] [{username}]: {message}")
                     chat_id = dado["message"]["from"]["id"]
                     if "document" in dado["message"] and '.sqlite' in dado["message"]["document"]["file_name"]:
                         file = dado["message"]["document"]
                         self.process_file(file, chat_id, username)
                         continue
                     if "/start" in message:
-                        message = f"""
+                        response = f"""
                         /start - Para exibir esta mensagem
                         /wifi NOME_DA_REDE|MAC_DA_REDE
                         """
-                        self.response(message,chat_id)
+                        self.response(response,chat_id)
                         continue
                     if "/compilar" in message:
                         try:
@@ -52,18 +53,22 @@ class Telegram_Service:
                                 ap = NewAccessPoint(ssid=ssid, mac=mac)
                                 compiled_ap = self.vuln.compile(ap)
                                 if compiled_ap:
-                                    message = f'Senha gerada com sucesso para a rede {compiled_ap.ssid}!'
-                                    self.response(message, chat_id, md=True)
-                                    self.response(compiled_ap.password, chat_id, md=True)
+                                    response = f'Senha gerada com sucesso para a rede {compiled_ap.ssid}!'
+                                    logging.info(f'[Enviado via Telegram] para [{username}]: {response}')
+                                    self.response(response, chat_id, md=True)
+                                    self.response(compiled_ap.password, chat_id)
                                 else:
-                                    message = f'Não foi possível gerar a senha para a rede {ssid}.'
-                                    self.response(message, chat_id)
+                                    response = f'Não foi possível gerar a senha para a rede {ssid}.'
+                                    logging.info(f'[Enviado via Telegram] para [{username}]: {response}')
+                                    self.response(response, chat_id)
                             else:
-                                message = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
-                                self.response(message, chat_id)
+                                response = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
+                                logging.info(f'[Enviado via Telegram] para [{username}]: {response}')
+                                self.response(response, chat_id)
                         except IndexError:
-                            message = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
-                            self.response(message, chat_id)
+                            response = 'Favor encaminhar nome da rede e mac da rede neste formato: NOME_DA_REDE|MAC_DA_REDE. Exemplo: claro_a2e1d3|af:43:2f:ff:43:ab'
+                            logging.info(f'[Enviado via Telegram] para [{username}]: {response}')
+                            self.response(response, chat_id)
                         continue
                     
 
@@ -132,8 +137,6 @@ class Telegram_Service:
         logging.info(f"Nenhuma rede nova..")
         
 
-    def response(self, message: str, chat_id: str, md: bool = False):
+    def response(self, message: str, chat_id: str):
         link_requisicao = f'{self.url_base}sendMessage?chat_id={chat_id}&text={message}'
-        if md:
-            link_requisicao = f'{self.url_base}sendMessage?chat_id={chat_id}&text={message}&parse_mode=MarkdownV2'
         requests.get(link_requisicao)
