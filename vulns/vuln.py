@@ -39,7 +39,7 @@ class Vuln:
             self.map = map_helper(self.db)
             logging.info('Mapa atualizado!')
 
-    def check_vuln_pending_db(self, filtered_ap_list: List[NewAccessPoint] = None) -> None: # Processa redes pendentes
+    def check_vuln_pending_db(self, filtered_ap_list: List[NewAccessPoint] = None) -> str: # Processa redes pendentes
         new_vulns: int = 0
         ap_list: List[NewAccessPoint]
         if not filtered_ap_list: # Se não for passado ap's especificos, pegar o que não foi processado no banco
@@ -50,10 +50,11 @@ class Vuln:
             if self.compile(ap):
                 new_vulns += 1
             #logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
-        logging.info(f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
         if new_vulns > 0:
             self.map = map_helper(self.db)
             logging.info('Mapa atualizado!')
+        logging.info(f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
+        return f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.'
     
     def check(self, ssid: str) -> bool:
         '''Valida se o AP é vulneravél á um dos scripts conhecidos'''
