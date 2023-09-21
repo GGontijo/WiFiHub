@@ -1,7 +1,6 @@
 import logging
 import os
 import folium
-import base64
 from folium.features import CustomIcon
 from folium.plugins import MarkerCluster
 from helpers.db_helper import DbHelper
