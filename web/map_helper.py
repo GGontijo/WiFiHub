@@ -1,4 +1,4 @@
-from io import BytesIO
+import logging
 import os
 import folium
 import base64
