@@ -84,7 +84,8 @@ class map_helper:
                 _icon = CustomIcon(
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
-            folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
+                folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
+                break
         self._map.add_child(pwned_layer)
         self._map.add_child(folium.LayerControl())
         return self.render()
