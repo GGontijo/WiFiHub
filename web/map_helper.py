@@ -1,5 +1,8 @@
+from io import BytesIO
 import os
 import folium
+import base64
+from folium.features import CustomIcon
 from folium.plugins import MarkerCluster
 from helpers.db_helper import DbHelper
 
@@ -13,69 +16,75 @@ class map_helper:
         self.file = os.path.join('web', 'index.html')
         self.db = db
         self.ap_geodata = self.db.get_ap_all()
+        self.vulnerable_icon = CustomIcon(
+            icon_image=os.path.join('web', 'icons', '001-wifi.png'),
+            icon_size=(32, 32),
+        )
         #self.generate_heavy_pwned()
-        self.generate_heavy_all()
+        #self.generate_heavy_all()
+        self.generate_opt_pwned()
         
     def generate_heavy_all(self):
-        coordinates = []
+        cluster = MarkerCluster()
         for ap in self.ap_geodata:
-            subcoordinates = [ap.bestlat, ap.bestlon]
-            coordinates.append(subcoordinates)
-        self._map.add_child(MarkerCluster(coordinates))
+            if ap.password == None:
+                coord = [ap.bestlat, ap.bestlon]
+                folium.Marker(coord, icon=self.non_vulnerable_icon).add_to(cluster)
+            else:
+                coord = [ap.bestlat, ap.bestlon]
+                _icon = CustomIcon(
+                    icon_image=os.path.join('web', 'icons', '001-wifi.png'),
+                    icon_size=(32, 32))
+                folium.Marker(coord, icon=_icon).add_to(cluster)
+        self._map.add_child(cluster)
         return self.render()
 
     def generate_heavy_pwned(self):
         for ap in self.ap_geodata:
-            if ap.password != None:
-                subcoordinates = [ap.bestlat, ap.bestlon]
-                popup_info = {"SSID": ap.ssid, 
-                            "MAC": ap.bssid, 
-                            "Password": ap.password}
-                folium.Marker(location=[subcoordinates[0], subcoordinates[1]], popup=popup_info).add_to(self._map)
+            if ap.password is not None:
+                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Password: {ap.password}"
+                _icon = CustomIcon(
+                    icon_image=os.path.join('web', 'icons', '001-wifi.png'),
+                    icon_size=(32, 32))
+                folium.Marker(location=[ap.bestlat, ap.bestlon], popup=popup_info, icon=_icon).add_to(self._map)
         return self.render()
 
     def generate_opt_all(self):
-        unpwned_coordinates = []
-        pwned_coordinates = []
-        for ap in self.ap_geodata:
-            if ap.password == None:
-                subcoordinates = [ap.bestlat, ap.bestlon]
-                unpwned_coordinates.append(subcoordinates)
-            else:
-                subcoordinates= [ap.bestlat, ap.bestlon]
-                pwned_coordinates.append(subcoordinates)
         unpwned_layer = folium.FeatureGroup(name='unpwned')
         pwned_layer = folium.FeatureGroup(name='pwned')
         unpwned_cluster = MarkerCluster(options={'maxClusterRadius': 100}).add_to(unpwned_layer)
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 1}).add_to(pwned_layer)
-        for coord in unpwned_coordinates:    
-            folium.Marker(coord).add_to(unpwned_cluster)
-        for coord in pwned_coordinates:
-            folium.Marker(coord).add_to(pwned_cluster)
+        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 20}).add_to(pwned_layer)
+        for ap in self.ap_geodata:
+            if ap.password == None:
+                coord = [ap.bestlat, ap.bestlon]
+                _icon = CustomIcon(
+                    icon_image=os.path.join('web', 'icons', '002-wifi-1.png'),
+                    icon_size=(32, 32),
+                )
+                folium.Marker(coord, icon=_icon).add_to(unpwned_cluster)
+            else:
+                coord = [ap.bestlat, ap.bestlon]
+                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Password: {ap.password}"
+                _icon = CustomIcon(
+                    icon_image=os.path.join('web', 'icons', '001-wifi.png'),
+                    icon_size=(32, 32))
+                folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
         self._map.add_child(unpwned_layer)
         self._map.add_child(pwned_layer)
         self._map.add_child(folium.LayerControl())
         return self.render()
 
-    def generate_opt_pwned(self): ##todo
-        unpwned_coordinates = []
-        pwned_coordinates = []
-        for ap in self.ap_geodata:
-            if ap['password'] == None:
-                subcoordinates = [ap.bestlat, ap.bestlon]
-                unpwned_coordinates.append(subcoordinates)
-            else:
-                subcoordinates= [ap.bestlat, ap.bestlon]
-                pwned_coordinates.append(subcoordinates)
-        unpwned_layer = folium.FeatureGroup(name='unpwned')
+    def generate_opt_pwned(self):
         pwned_layer = folium.FeatureGroup(name='pwned')
-        unpwned_cluster = MarkerCluster(options={'maxClusterRadius': 100}).add_to(unpwned_layer)
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 1}).add_to(pwned_layer)
-        for coord in unpwned_coordinates:    
-            folium.Marker(coord).add_to(unpwned_cluster)
-        for coord in pwned_coordinates:
-            folium.Marker(coord).add_to(pwned_cluster)
-        self._map.add_child(unpwned_layer)
+        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 20}).add_to(pwned_layer)
+        for ap in self.ap_geodata:
+            if ap.password is not None:
+                coord = [ap.bestlat, ap.bestlon]
+                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Password: {ap.password}"
+                _icon = CustomIcon(
+                    icon_image=os.path.join('web', 'icons', '001-wifi.png'),
+                    icon_size=(32, 32))
+                folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
         self._map.add_child(pwned_layer)
         self._map.add_child(folium.LayerControl())
         return self.render()
