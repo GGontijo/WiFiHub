@@ -76,7 +76,7 @@ class map_helper:
 
     def generate_opt_pwned(self):
         pwned_layer = folium.FeatureGroup(name='pwned')
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 25}).add_to(pwned_layer)
+        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 1500}).add_to(pwned_layer)
         for ap in self.ap_geodata:
             if ap.password is not None:
                 coord = [ap.bestlat, ap.bestlon]
@@ -85,7 +85,6 @@ class map_helper:
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
                 folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
-                break
         self._map.add_child(pwned_layer)
         self._map.add_child(folium.LayerControl())
         return self.render()
