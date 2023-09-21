@@ -37,7 +37,6 @@ class Vuln:
         logging.info(f'Total de {ap_info_list} processados. Total de {vulns} vulneráveis.')
         if vulns > 0:
             self.map = map_helper(self.db)
-            logging.info('Mapa atualizado!')
 
     def check_vuln_pending_db(self, filtered_ap_list: List[NewAccessPoint] = None) -> str: # Processa redes pendentes
         new_vulns: int = 0
@@ -52,7 +51,6 @@ class Vuln:
             #logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
         if new_vulns > 0:
             self.map = map_helper(self.db)
-            logging.info('Mapa atualizado!')
         logging.info(f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
         return f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.'
     
