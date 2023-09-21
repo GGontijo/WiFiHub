@@ -2,7 +2,7 @@ import logging
 import os
 import folium
 from folium.features import CustomIcon
-from folium.plugins import MarkerCluster
+from folium.plugins import MarkerCluster, Search
 from helpers.db_helper import DbHelper
 
 class map_helper:
@@ -83,8 +83,9 @@ class map_helper:
                 _icon = CustomIcon(
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
-                folium.Marker(coord, popup=popup_info, icon=_icon).add_to(pwned_cluster)
+                folium.Marker(coord, popup=popup_info, icon=_icon, name=ap.ssid).add_to(pwned_cluster)
         self._map.add_child(pwned_layer)
+        self._map.add_child(Search(pwned_layer, search_label='name', search_zoom=20, position='topleft', placeholder='Procure uma rede pelo nome'))
         self._map.add_child(folium.LayerControl())
         return self.render()
 
