@@ -1,5 +1,5 @@
 import logging
-import os
+import time
 from models.base_models import NewAccessPoint
 from helpers.db_helper import DbHelper
 from helpers.config_helper import Config
@@ -24,6 +24,7 @@ class Telegram_Service:
     def process_messages(self):
         update_id = None
         while True:
+            time.sleep(2)
             atualizacao = self.get_new_messages(update_id)
             dados = atualizacao["result"]
             if dados:
