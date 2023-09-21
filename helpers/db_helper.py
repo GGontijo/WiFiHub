@@ -104,7 +104,7 @@ class DbHelper:
 
         ap_list_raw = []
         for item in rows:
-            ap_list_raw = item[:11]
+            ap_list_raw.append(item)
         
         for ap in ap_list_raw:
             response = db_i.insert(f'insert into location values(?,{str(ap)[1:-1]})', (None,))
@@ -131,7 +131,7 @@ class DbHelper:
 
         ap_list_raw = []
         for item in rows:
-            ap_list_raw = item[:11]
+            ap_list_raw.append(item)
         
         for ap in ap_list_raw:
             response = db_i.insert(f'insert into route values(?,{str(ap)[1:-1]})', (None,))
