@@ -3,7 +3,6 @@ __pycache__/
 *.sql
 *.sqlite
 *.sqlite-journal
-!launch.json
-*.json
+config.json
 config.json
 *.html
