@@ -27,7 +27,7 @@ def start_api():
 def start_server():
     api_thread = Thread(target=start_api)
     api_thread.start()
-    telegram_service.process_messages()
+    #telegram_service.process_messages()
     
 @app.route('/favicon.ico')
 def favicon():
