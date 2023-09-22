@@ -3,6 +3,7 @@ __pycache__/
 *.sql
 *.sqlite
 *.sqlite-journal
+!.vscode/*
 *.json
 config.json
 *.html
