@@ -1,3 +1,4 @@
+import logging
 from interfaces.database_interface import DatabaseInterface
 from contextlib import contextmanager
 import sqlite3
@@ -8,10 +9,10 @@ class SQLite(DatabaseInterface):
         try:
             self.sqliteConnection = sqlite3.connect(db_file, check_same_thread=False)
             print(self.sqliteConnection)
-            print(f"Successfully Connected to SQLite: {db_file}")
+            logging.info(f"Successfully Connected to SQLite: {db_file}")
 
         except sqlite3.Error as error:
-            print(f"Failed to connect to SQLite SQLite: {error}")
+            logging.error(f"Failed to connect to SQLite SQLite: {error}")
 
     @contextmanager
     def __cursor(self) -> None:
@@ -27,10 +28,10 @@ class SQLite(DatabaseInterface):
     def close(self) -> None:
         if isinstance(self.sqliteConnection, sqlite3.Connection):
             self.sqliteConnection = self.sqliteConnection.close()
-            print("The SQLite connection is closed")
+            logging.info("The SQLite connection is closed")
 
         else:
-            print('This object does not have a SQLite connection anymore!')
+            logging.warn('This object does not have a SQLite connection anymore!')
 
     def select(self, query: str) -> list:
         with self.__cursor() as cursor:
