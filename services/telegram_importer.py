@@ -25,7 +25,7 @@ class Telegram_Service:
 
     def process_messages(self):
         while True:
-            time.sleep(2)
+            time.sleep(5)
             atualizacao = self.get_new_messages()
             dados = atualizacao["result"]
             if dados:
@@ -75,15 +75,17 @@ class Telegram_Service:
                     
 
     def get_new_messages(self):
-        _link_update_offset = f'{self.url_update_messages}&offset={self.update_id + 1}'
-        for _ in range(6):
-            try:
+        _link_update_offset = f'{self.url_update_messages}&offset={self.update_id + 1 if self.update_id is not None else None}'
+        try:
+            response = requests.get(_link_update_offset)
+        except requests.ConnectionError as e:
+            logging.error(f'Houve um erro ao se comunicar com api.telegram.org. Detalhes: {e}')     
+            for _ in range(6):
+                logging.warn(f'Realizando nova tentativa... {_} de 6')
                 response = requests.get(_link_update_offset)
                 if response.status_code == 200:
                     break
-            except requests.ConnectionError as e:
-                logging.error(f'Houve um erro ao se comunicar com api.telegram.org. Detalhes: {e}')
-                logging.warn(f'Realizando nova tentativa... {_} de 6')
+                time.sleep(5)
         return json.loads(response.content)
 
     def download_file(self, file):
