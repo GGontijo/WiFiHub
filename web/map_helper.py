@@ -24,6 +24,7 @@ class map_helper:
         self.generate_opt_pwned()
         
     def generate_heavy_all(self):
+        '''Gera o mapa com as redez não vulneráveis, sem utilizar cluster'''
         cluster = MarkerCluster()
         for ap in self.ap_geodata:
             if ap.password == None:
@@ -39,6 +40,7 @@ class map_helper:
         return self.render()
 
     def generate_heavy_pwned(self):
+        '''Gera o mapa com as redez vulneráveis, sem utilizar cluster'''
         for ap in self.ap_geodata:
             if ap.password is not None:
                 popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Password: {ap.password}"
@@ -49,6 +51,7 @@ class map_helper:
         return self.render()
 
     def generate_opt_all(self):
+        '''Gera o mapa com apenas redes vulneráveis e não vulneráveis, com níveis distintos de clusterização entre elas'''
         unpwned_layer = folium.FeatureGroup(name='unpwned')
         pwned_layer = folium.FeatureGroup(name='pwned')
         unpwned_cluster = MarkerCluster(options={'maxClusterRadius': 100}).add_to(unpwned_layer)
@@ -74,6 +77,7 @@ class map_helper:
         return self.render()
 
     def generate_opt_pwned(self):
+        '''Gera o mapa com apenas as redes vulneráveis e compiladas'''
         pwned_layer = folium.FeatureGroup(name='pwned')
         pwned_cluster = MarkerCluster(options={'maxClusterRadius': 25}).add_to(pwned_layer)
         for ap in self.ap_geodata:
