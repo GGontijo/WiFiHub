@@ -31,7 +31,7 @@ def favicon():
 
 @app.route('/')
 def index():
-    return render_template('index.html', title='WifiHub')
+    return render_template('index.html')
 
 
 @app.route('/compile')
