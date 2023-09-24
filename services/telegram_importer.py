@@ -18,18 +18,19 @@ class Telegram_Service:
         _token = _config_data["TOKEN"]
         _url = _config_data["URL"]
         _download_url = _config_data["DOWNLOAD_URL"]
-        self.url_base_download = f'{_download_url}bot{_token}'
+        self.update_id = None
         self.url_base = f'{_url}bot{_token}/'
+        self.url_base_download = f'{_download_url}bot{_token}'
+        self.url_update_messages = f'{self.url_base}getUpdates?timeout=100'
 
     def process_messages(self):
-        update_id = None
         while True:
-            time.sleep(2)
-            atualizacao = self.get_new_messages(update_id)
+            time.sleep(5)
+            atualizacao = self.get_new_messages()
             dados = atualizacao["result"]
             if dados:
                 for dado in dados:
-                    update_id = dado["update_id"]
+                    self.update_id = dado["update_id"]
                     username = str(dado["message"]["from"]["first_name"])
                     message = dado["message"]["text"] if "text" in dado["message"] else dado["message"]["document"]["file_name"]
                     logging.info(f"[Recebido via Telegram] [{username}]: {message}")
@@ -73,11 +74,18 @@ class Telegram_Service:
                         continue
                     
 
-    def get_new_messages(self, update_id):
-        link_req = f'{self.url_base}getUpdates?timeout=100'
-        if update_id:
-            link_req = f'{link_req}&offset={update_id + 1}'
-        response = requests.get(link_req)
+    def get_new_messages(self):
+        _link_update_offset = f'{self.url_update_messages}&offset={self.update_id + 1 if self.update_id is not None else None}'
+        try:
+            response = requests.get(_link_update_offset)
+        except requests.ConnectionError as e:
+            logging.error(f'Houve um erro ao se comunicar com api.telegram.org. Detalhes: {e}')     
+            for _ in range(6):
+                logging.warn(f'Realizando nova tentativa... {_} de 6')
+                response = requests.get(_link_update_offset)
+                if response.status_code == 200:
+                    break
+                time.sleep(5)
         return json.loads(response.content)
 
     def download_file(self, file):
