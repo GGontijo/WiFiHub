@@ -27,9 +27,9 @@ class Telegram_Service:
         while True:
             time.sleep(5)
             atualizacao = self.get_new_messages()
-            dados = atualizacao["result"]
+            dados = atualizacao
             if dados:
-                for dado in dados:
+                for dado in dados["result"]:
                     self.update_id = dado["update_id"]
                     username = str(dado["message"]["from"]["first_name"])
                     message = dado["message"]["text"] if "text" in dado["message"] else dado["message"]["document"]["file_name"]
