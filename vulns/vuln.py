@@ -52,8 +52,7 @@ class Vuln:
             if self.compile(ap):
                 new_vulns += 1
                 logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
-        if new_vulns > 0:
-            self.map.render()
+        self.map.render()
         logging.info(f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
         return new_vulns
     

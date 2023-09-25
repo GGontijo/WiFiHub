@@ -4,7 +4,7 @@ from typing import Optional
 class NewAccessPoint(BaseModel):
     ssid: str
     mac: str
-    password: Optional[str] = None
+    password: Optional[str]
 
 class AccessPoint(BaseModel):
     bssid: str
@@ -18,4 +18,5 @@ class AccessPoint(BaseModel):
     bestlevel: int
     bestlat: float
     bestlon: float
-    password: Optional[str] = None
+    password: Optional[str]
+    wardriver: Optional[str]

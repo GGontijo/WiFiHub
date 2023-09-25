@@ -31,7 +31,9 @@ class Telegram_Service:
             if dados:
                 for dado in dados["result"]:
                     self.update_id = dado["update_id"]
-                    username = str(dado["message"]["from"]["first_name"])
+                    first_name = dado["message"]["from"]["first_name"]
+                    last_name = dado["message"]["from"]["last_name"]
+                    username = str(f'{first_name}{last_name}')
                     message = dado["message"]["text"] if "text" in dado["message"] else dado["message"]["document"]["file_name"]
                     logging.info(f"[Recebido via Telegram] [{username}]: {message}")
                     chat_id = dado["message"]["from"]["id"]
@@ -115,15 +117,15 @@ class Telegram_Service:
         self.response(f'Iniciando sincronização...', chat_id)
 
         self.response(f'Sincronizando redes [...]', chat_id)
-        sync_netw = self.db.sync_network(file_dir)      
+        sync_netw = self.db.sync_network(file_dir, username)      
         self.response(f'Sincronizando redes [{sync_netw["status"]}]', chat_id)
 
         self.response(f'Sincronizando coordenadas [...]', chat_id)
-        sync_coords = self.db.sync_location(file_dir)
+        sync_coords = self.db.sync_location(file_dir, username)
         self.response(f'Sincronizando coordenadas [{sync_coords["status"]}]', chat_id)
 
         self.response(f'Sincronizando rotas [...]', chat_id)
-        sync_routes = self.db.sync_route(file_dir)
+        sync_routes = self.db.sync_route(file_dir, username)
         self.response(f'Sincronizando rotas [{sync_routes["status"]}]', chat_id)
 
         message = f'Sincronização finalizada com sucesso!'

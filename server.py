@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(
 _static_folder = os.path.join(os.getcwd(), 'web/static')
 
 app = Flask(__name__, template_folder="web", static_folder=_static_folder)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 db =  DbHelper()
 vuln = Vuln(db)
 telegram_service = Telegram_Service(db)
@@ -40,7 +41,8 @@ def get_all_vulns():
 
 @app.route('/updatemap')
 def update_map():
-    return vuln.check_vuln_pending_db()
+    vuln.check_vuln_pending_db()
+    return 'Processo de atualização do mapa finalizado.'
 
 if __name__ == '__main__':
     start_server()

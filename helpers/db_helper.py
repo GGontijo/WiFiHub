@@ -1,4 +1,5 @@
 from typing import List
+import logging
 from database.sqlite import SQLite
 from models.base_models import AccessPoint, NewAccessPoint
 
@@ -40,7 +41,7 @@ class DbHelper:
             response = self.dbconn.update(q)
             return response.connection.total_changes
 
-    def sync_network(self, db_e) -> dict:
+    def sync_network(self, db_e, username: str = None) -> dict:
         '''Método que sincroniza a tabela network a partir de um banco recebido (db_e) ao
         banco interno (db_i)'''
         db_i = self.dbconn
@@ -52,6 +53,15 @@ class DbHelper:
         bssid_list = []
         for row in rows:
             bssid_list.append(row[0])
+
+        # Faz o rebase do wardriver caso a rede não esteja ownada
+        query_rebase_wardriver = f"select * from network where network.bssid in ({str(bssid_list)[1:-1]})" 
+        rows_rebase = db_e.select(query_rebase_wardriver)
+        if rows_rebase:
+            for row in rows_rebase:
+                db_i.update(f"UPDATE network SET wardriver = '{username}' WHERE bssid = '{row[0]}' and wardriver is null")
+            logging.info(f'Rebased wardriver em {len(rows_rebase)} registros na tabela network')
+
 
         query_netw_b = f"select * from network where network.bssid not in ({str(bssid_list)[1:-1]})" #"insert into network select *, NULL from network where network.bssid not in ({rows})"
         rows = db_e.select(query_netw_b)
@@ -75,16 +85,18 @@ class DbHelper:
                 bestlevel=item[8],
                 bestlat=item[9],
                 bestlon=item[10],
-                password=item[11] if len(item) == 12 else None,
+                wardriver=username
                 )
             ap_obj_list.append(ap_obj)
 
         for ap in ap_list_raw:
-            response = db_i.insert(f'insert into network values({str(ap)[1:-1]}, ?)', (None, ))
+            response = db_i.insert(f'insert into network values({str(ap)[1:-1]}, ?, ?)', (None, None, ))
+            db_i.update(f"UPDATE network SET wardriver = '{username}' WHERE bssid = '{ap[0]}'")
+
 
         return {"status": "OK", "changes": response.connection.total_changes, "data": [NewAccessPoint(ssid=new_ap.ssid, mac=new_ap.bssid) for new_ap in ap_obj_list]}
 
-    def sync_location(self, db_e) -> bool:
+    def sync_location(self, db_e, username: str = None) -> bool:
         '''Método que sincroniza a tabela location a partir de um banco recebido (db_e) ao
         banco interno (db_i)'''
         db_i = self.dbconn
@@ -93,9 +105,11 @@ class DbHelper:
         #Insere localizações cujo time não existia
         query_loc_a = "select time from location group by time"
         rows = db_i.select(query_loc_a)
+
         loc_list = []
         for row in rows:
             loc_list.append(row[0])
+
         query_loc_b = f"select bssid, level, lat, lon, altitude, accuracy, time, external from location where location.time not in ({str(loc_list)[1:-1]})" #"insert into location select NULL, bssid, level, lat, lon, altitude, accuracy, time, external from location where location.time not in ({rows})"
         rows = db_e.select(query_loc_b) #debug
         db_e.close()
@@ -107,11 +121,11 @@ class DbHelper:
             ap_list_raw.append(item)
         
         for ap in ap_list_raw:
-            response = db_i.insert(f'insert into location values(?,{str(ap)[1:-1]})', (None,))
+            response = db_i.insert(f'insert into location values(?,{str(ap)[1:-1]}, ?)', (None, None, ))
 
         return {"status": "OK", "changes": response.connection.total_changes}
 
-    def sync_route(self, db_e) -> bool:
+    def sync_route(self, db_e, username: str = None) -> bool:
         '''Método que sincroniza a tabela route a partir de um banco recebido (db_e) ao
         banco interno (db_i)'''
         db_i = self.dbconn
@@ -123,6 +137,8 @@ class DbHelper:
         route_list = []
         for row in rows:
             route_list.append(row[0])
+
+
         query_route_b = f"select run_id, wifi_visible, cell_visible, bt_visible, lat, lon, altitude, accuracy, time from route where route.time not in ({str(route_list)[1:-1]})" #"insert into route select NULL, run_id, wifi_visible, cell_visible, bt_visible, lat, lon, altitude, accuracy, time from route where route.time not in ({rows})"
         rows = db_e.select(query_route_b) #debug
         db_e.close()
@@ -134,7 +150,7 @@ class DbHelper:
             ap_list_raw.append(item)
         
         for ap in ap_list_raw:
-            response = db_i.insert(f'insert into route values(?,{str(ap)[1:-1]})', (None,))
+            response = db_i.insert(f'insert into route values(?,{str(ap)[1:-1]}, ?)', (None, None, ))
 
         return {"status": "OK", "changes": response.connection.total_changes}
 
@@ -155,7 +171,8 @@ class DbHelper:
             bestlevel=item[8],
             bestlat=item[9],
             bestlon=item[10],
-            password=item[11] if len(item) == 12 else None,
+            password=item[11] if len(item) >= 12 else None,
+            wardriver=item[12] if len(item) >= 13 else None
             )
             ap_list.append(ap)
         return ap_list

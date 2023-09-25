@@ -87,7 +87,7 @@ class Map_Helper:
         for ap in self.ap_geodata:
             if ap.password is not None:
                 coord = [ap.bestlat, ap.bestlon]
-                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Password: {ap.password}"
+                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Adicionado por: {ap.wardriver}<br>Password: {ap.password}"
                 _icon = CustomIcon(
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
