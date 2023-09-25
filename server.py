@@ -4,7 +4,7 @@ from flask import Flask, render_template, send_from_directory
 from helpers.db_helper import DbHelper
 from services.telegram_importer import Telegram_Service
 from vulns.vuln import Vuln
-from web.map_helper import map_helper
+from web.map_helper import Map_Helper
 from flask import jsonify
 from threading import Thread
 
@@ -14,7 +14,6 @@ _static_folder = os.path.join(os.getcwd(), 'web/static')
 app = Flask(__name__, template_folder="web", static_folder=_static_folder)
 db =  DbHelper()
 vuln = Vuln(db)
-map = map_helper(db)
 telegram_service = Telegram_Service(db)
 
 def start_api():
@@ -32,18 +31,6 @@ def favicon():
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
-@app.route('/compile')
-def compile():
-    return 'Lá ele!'
-    #ssid = request.args.get('ssid')
-    #mac = request.args.get('mac')
-    #if ssid and mac:
-    #    logging.info(f"Compilando para o SSID: {ssid}, MAC: {mac}")
-    #    return 
-    #else:
-    #    return "Parâmetros 'ssid' e 'mac' não fornecidos corretamente na URL."
 
 @app.route('/list')
 def get_all_vulns():
