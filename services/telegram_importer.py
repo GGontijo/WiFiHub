@@ -117,16 +117,22 @@ class Telegram_Service:
         self.response(f'Iniciando sincronização...', chat_id)
 
         self.response(f'Sincronizando redes [...]', chat_id)
-        sync_netw = self.db.sync_network(file_dir, username)      
-        self.response(f'Sincronizando redes [{sync_netw["status"]}]', chat_id)
+        sync_netw = self.db.sync_network(file_dir, username) 
+        message = f'Sincronizando redes [{sync_netw["status"]}]'     
+        self.response(message, chat_id)
+        logging.info(f'[Enviado via Telegram] para [{username}]: {message}')
 
         self.response(f'Sincronizando coordenadas [...]', chat_id)
         sync_coords = self.db.sync_location(file_dir, username)
-        self.response(f'Sincronizando coordenadas [{sync_coords["status"]}]', chat_id)
+        message = f'Sincronizando coordenadas [{sync_coords["status"]}]'
+        self.response(message, chat_id)
+        logging.info(f'[Enviado via Telegram] para [{username}]: {message}')
 
         self.response(f'Sincronizando rotas [...]', chat_id)
         sync_routes = self.db.sync_route(file_dir, username)
-        self.response(f'Sincronizando rotas [{sync_routes["status"]}]', chat_id)
+        message = f'Sincronizando rotas [{sync_routes["status"]}]'
+        self.response(message, chat_id)
+        logging.info(f'[Enviado via Telegram] para [{username}]: {message}')
 
         message = f'Sincronização finalizada com sucesso!'
         self.response(message, chat_id)
