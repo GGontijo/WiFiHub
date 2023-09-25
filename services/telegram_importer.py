@@ -129,22 +129,23 @@ class Telegram_Service:
         message = f'Sincronização finalizada com sucesso!'
         self.response(message, chat_id)
 
+        processed_result = 0
+        if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
+            message = f'Processando as redes novas...'
+            logging.info(f"Processando as redes novas...")
+            self.response(message, chat_id)
+            processed_result = self.vuln.check_vuln_pending_db(sync_netw["data"])
+
         message = f"""
-        Foram adicionados:
+        Foram sincronizados:
         {sync_netw["changes"]} Novas redes
+        {processed_result} Novas redes vulneráveis
         {sync_coords["changes"]} Novas coordenadas
-        {sync_routes["changes"]} Novas rotas    
+        {sync_routes["changes"]} Novas rotas  
         """
         self.response(message, chat_id)
-
         logging.info(f"Finalizado importação solicitado pelo usuário: {username} via Telegram: {message}")
         
-        if isinstance(sync_netw, dict) and sync_netw["changes"] > 0:
-            logging.info(f"Processando as redes novas...")
-            self.vuln.check_vuln_pending_db(sync_netw["data"])
-            return None
-
-        logging.info(f"Nenhuma rede nova..")
         
 
     def response(self, message: str, chat_id: str):
