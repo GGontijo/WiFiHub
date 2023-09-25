@@ -97,10 +97,11 @@ class Telegram_Service:
         file_name = file_path.rsplit('/', 1)[1]
 
         link_req = f'{self.url_base_download}/{file_path}'
-        file = requests.get(link_req)
+        file_req = requests.get(link_req)
         file_dir = f'./services/downloads/{file_name}'
+        logging.info(f"[Arquivo recebido via Telegram]: [{file['file_name']}] salvo em {file_dir}")
         with open(file_dir, 'wb') as f:
-            f.write(file.content)
+            f.write(file_req.content)
 
         return file_dir
 
