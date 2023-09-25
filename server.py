@@ -5,7 +5,6 @@ from flask import Flask, render_template, send_from_directory
 from helpers.db_helper import DbHelper
 from services.telegram_importer import Telegram_Service
 from vulns.vuln import Vuln
-from web.map_helper import Map_Helper
 from flask import jsonify
 from threading import Thread
 
