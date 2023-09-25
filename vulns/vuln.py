@@ -5,11 +5,12 @@ from models.base_models import NewAccessPoint
 import importlib.util
 import logging
 import os, inspect
-from web.map_helper import map_helper
+from web.map_helper import Map_Helper
 
 class Vuln:
 
     def __init__(self, db: DbHelper):
+        self.map = Map_Helper(db)
         self.db = db
         scripts_folder = os.path.abspath('./vulns')
         load_vuln = []
@@ -36,23 +37,25 @@ class Vuln:
             logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}')
         logging.info(f'Total de {ap_info_list} processados. Total de {vulns} vulneráveis.')
         if vulns > 0:
-            self.map = map_helper(self.db)
+            self.map.render()
 
     def check_vuln_pending_db(self, filtered_ap_list: List[NewAccessPoint] = None) -> str: # Processa redes pendentes
         new_vulns: int = 0
         ap_list: List[NewAccessPoint]
         if not filtered_ap_list: # Se não for passado ap's especificos, pegar o que não foi processado no banco
+            logging.info('Iniciando processamento de todas as redes pendentes em banco')
             ap_list = self.db.get_pending_ap_mac()
         else:
+            logging.info(f'Iniciando processamento de {len(filtered_ap_list)} novas redes adicionadas')
             ap_list = filtered_ap_list
         for ap in ap_list:
             if self.compile(ap):
                 new_vulns += 1
-            #logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
+                logging.info(f'Processado: {ap.ssid} | {ap.mac} - password: {ap.password}') 
         if new_vulns > 0:
-            self.map = map_helper(self.db)
+            self.map.render()
         logging.info(f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.')
-        return f'Foram processados {len(ap_list)} redes. Total de {new_vulns} novas redes vulneráveis.'
+        return new_vulns
     
     def check(self, ssid: str) -> bool:
         '''Valida se o AP é vulneravél á um dos scripts conhecidos'''
