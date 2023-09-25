@@ -1,5 +1,6 @@
 import os
 import logging
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, render_template, send_from_directory
 from helpers.db_helper import DbHelper
 from services.telegram_importer import Telegram_Service
@@ -12,6 +13,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(
 _static_folder = os.path.join(os.getcwd(), 'web/static')
 
 app = Flask(__name__, template_folder="web", static_folder=_static_folder)
+
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 db =  DbHelper()
 vuln = Vuln(db)
