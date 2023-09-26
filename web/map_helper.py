@@ -14,6 +14,7 @@ class Map_Helper:
     def __init__(self, db: DbHelper) -> None:
         self._start_coord = [-15.595485,-56.092638]
         self.file = os.path.join('web', 'index.html')
+        self.scoreboard_file = os.path.join('web', 'scoreboard.html')
         self.tz_cuiaba = pytz.timezone('America/Cuiaba')
         self.db = db
         self.vulnerable_icon = CustomIcon(
@@ -125,6 +126,39 @@ class Map_Helper:
             self._map.add_child(layer)
 
         self._map.add_child(folium.LayerControl())
+        self.create_scoreboard_html()
+    
+    def create_scoreboard_html(self):
+        if self.wardriver_list is None:
+            return
+
+        html = "<html><head><title>Scoreboard</title>"
+        html += "<style>"
+        html += "table {"
+        html += "    width: 50%;"
+        html += "    border-collapse: collapse;"
+        html += "    margin: 20px auto;"
+        html += "}"
+        html += "th, td {"
+        html += "    padding: 10px;"
+        html += "    text-align: left;"
+        html += "    border-bottom: 1px solid #ddd;"
+        html += "}"
+        html += "th {"
+        html += "    background-color: #f2f2f2;"
+        html += "}"
+        html += "</style>"
+        html += "</head><body>"
+        html += "<h1>Total de redes vulneráveis encontradas</h1>"
+        html += "<table border='1'><tr><th>Name</th><th>Total</th></tr>"
+
+        for item in self.wardriver_list:
+            html += f"<tr><td>{item['name']}</td><td>{item['total']}</td></tr>"
+
+        html += "</table></body></html>"
+
+        with open(self.scoreboard_file, "w", encoding="utf-8") as file:
+            file.write(html)
 
     def render(self, type: str = None):
         # TODO: Filtrar pelo type para gerar heavy all, heavy pwned, opt all ou opt pwned...

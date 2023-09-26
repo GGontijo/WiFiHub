@@ -37,6 +37,10 @@ def favicon():
 def index():
     return render_template('index.html')
 
+@app.route('/scoreboard')
+def scoreboard():
+    return render_template('scoreboard.html')
+
 @app.route('/list')
 def get_all_vulns():
     access_points = db.get_ap_all()
