@@ -1,6 +1,8 @@
 import logging
 import os
 import folium
+import pytz
+from datetime import datetime
 from folium.features import CustomIcon
 from folium.plugins import MarkerCluster, Search
 from helpers.db_helper import DbHelper
@@ -12,6 +14,7 @@ class Map_Helper:
     def __init__(self, db: DbHelper) -> None:
         self._start_coord = [-15.595485,-56.092638]
         self.file = os.path.join('web', 'index.html')
+        self.tz_cuiaba = pytz.timezone('America/Cuiaba')
         self.db = db
         self.vulnerable_icon = CustomIcon(
             icon_image=os.path.join('web', 'icons', '001-wifi.png'),
@@ -82,18 +85,44 @@ class Map_Helper:
         '''Gera o mapa com apenas as redes vulneráveis e compiladas'''
         self.ap_geodata = self.db.get_ap_all()
         self._map = folium.Map(location=self._start_coord, zoom_start=25)
-        pwned_layer = folium.FeatureGroup(name='pwned')
-        pwned_cluster = MarkerCluster(options={'maxClusterRadius': 25}).add_to(pwned_layer)
+        wardriver_layers = {}
+        self.wardriver_list = []
+
+        # Substitui todos os valores None por 'Nobody' na lista self.ap_geodata uma vez que o sorted não consegue ordenar None
         for ap in self.ap_geodata:
+            if ap.wardriver is None:
+                ap.wardriver = 'Nobody'
+
+        sorted_ap_geodata = sorted(self.ap_geodata, key=lambda ap: ap.wardriver) # Necessário ordenar para não perder a referência na hora de adicionar os markers ao cluster
+
+        for ap in sorted_ap_geodata:
+            layer_name = ap.wardriver
+            if layer_name not in wardriver_layers:
+                self.wardriver_list.append({"name": layer_name, "total": 0})
+
+                wardriver_layers[layer_name] = folium.FeatureGroup(name=layer_name)
+                marker_cluster_layer = MarkerCluster(options={'maxClusterRadius': 25})  # Cluster por camada
+                wardriver_layers[layer_name].add_child(marker_cluster_layer)
+
+
+
             if ap.password is not None:
                 coord = [ap.bestlat, ap.bestlon]
-                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Adicionado por: {ap.wardriver}<br>Password: {ap.password}"
+                popup_info = f"SSID: {ap.ssid}<br>MAC: {ap.bssid}<br>Adicionado por: {ap.wardriver}"
+                if ap.lasttime != 0:
+                    timestamp = ap.lasttime / 1000
+                    data_e_hora_tz = datetime.fromtimestamp(timestamp, tz=self.tz_cuiaba)
+                    popup_info += f'<br>Adicionado em: {data_e_hora_tz}'
                 _icon = CustomIcon(
                     icon_image=os.path.join('web', 'icons', '001-wifi.png'),
                     icon_size=(32, 32))
-                folium.Marker(coord, popup=popup_info, icon=_icon, name=ap.ssid).add_to(pwned_cluster)
-        self._map.add_child(pwned_layer)
-        self._map.add_child(Search(pwned_layer, search_label='name', search_zoom=20, position='topleft', placeholder='Procure uma rede pelo nome'))
+                marker_cluster_layer.add_child(folium.Marker(coord, popup=popup_info, icon=_icon, name=ap.ssid))
+                next((item for item in self.wardriver_list if item["name"] == ap.wardriver), None)["total"] += 1
+
+    
+        for layer_name, layer in wardriver_layers.items():
+            self._map.add_child(layer)
+
         self._map.add_child(folium.LayerControl())
 
     def render(self, type: str = None):
