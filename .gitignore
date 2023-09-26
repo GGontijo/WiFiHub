@@ -6,3 +6,4 @@ __pycache__/
 config.json
 config.json
 *.html
+*.bpk
