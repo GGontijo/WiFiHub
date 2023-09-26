@@ -85,6 +85,7 @@ class Map_Helper:
         '''Gera o mapa com apenas as redes vulneráveis e compiladas'''
         self.ap_geodata = self.db.get_ap_all()
         self._map = folium.Map(location=self._start_coord, zoom_start=25)
+        folium.TileLayer('cartodbdark_matter').add_to(self._map)
         wardriver_layers = {}
         self.wardriver_list = []
 
