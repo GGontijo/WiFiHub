@@ -149,7 +149,7 @@ class Map_Helper:
         html += "}"
         html += "</style>"
         html += "</head><body>"
-        html += "<h1>Total de redes vulneráveis encontradas</h1>"
+        html += "<h1>Total de redes encontradas</h1>"
         html += "<table border='1'><tr><th>Name</th><th>Total</th></tr>"
 
         for item in self.wardriver_list:
